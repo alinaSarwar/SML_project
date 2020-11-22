@@ -1,25 +1,26 @@
-missing txt files or missing class labels (incomplete list)
+Some problems in the data handled by the code:
 
-    Ranimukherji/KuchKuchhotahai
-    Thilakan/Dhwani
-    Madhavan/3Idiots
-    Shobana/Dhwani
-    Bharathi/Extras
-    BabuMohan
-    Nagarjuna/HelloBrother
-    Nagarjuna/Nuvvu_Vasthavani
+    missing txt files or missing class labels (incomplete list)
+
+        Ranimukherji/KuchKuchhotahai
+        Thilakan/Dhwani
+        Madhavan/3Idiots
+        Shobana/Dhwani
+        Bharathi/Extras
+        BabuMohan
+        Nagarjuna/HelloBrother
+        Nagarjuna/Nuvvu_Vasthavani
+
+    Soundarya/JayamManadera -- totally mismatching image names
+    Null image names -- Mohanlal/Twenty-20, RajeshKhanna/Aaradhana etc
 
 
+#############################################################################################################
 
-Soundarya/JayamManadera -- totally mismatching image names
+Do the following before running split_data_copy.py. This will result in annotations for 31134 images in total,
+split into train/val sets. Actors in train are not present in val. Around 75/25 split used for train/val.
 
-
-
-##########################################################################################
-
-do the following before running split_data_copy.py
-
-##########################################################################################
+#############################################################################################################
 
     correct spelling Savithri/Gundammakatha
     correct spelling Ramaprabha/JayamManadera
@@ -35,7 +36,7 @@ do the following before running split_data_copy.py
     
 
 
-Results in annotations for 31134 images in total
+R
 
 
 

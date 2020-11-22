@@ -72,7 +72,7 @@ if __name__ == '__main__':
                             img_path = os.path.join(movie_path, 'images', img[0])
                             all_data.append([img_path, pose, expr, gender])
 
-        # print(len(all_data))
+    print(len(all_data))
 
     # set the seed of the random numbers generator, so we can reproduce the results later
     np.random.seed(42)

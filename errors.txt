@@ -1,0 +1,48 @@
+missing txt files or missing class labels (incomplete list)
+
+    Ranimukherji/KuchKuchhotahai
+    Thilakan/Dhwani
+    Madhavan/3Idiots
+    Shobana/Dhwani
+    Bharathi/Extras
+    BabuMohan
+    Nagarjuna/HelloBrother
+    Nagarjuna/Nuvvu_Vasthavani
+
+
+
+Soundarya/JayamManadera -- totally mismatching image names
+
+
+
+##########################################################################################
+
+do the following before running split_data_copy.py
+
+##########################################################################################
+
+    correct spelling Savithri/Gundammakatha
+    correct spelling Ramaprabha/JayamManadera
+    correct spelling Dwarkish/Bahaddurgandu
+    correct spelling Savithri/Missamma
+
+    
+    delete wierd characters Simran/Nuvvu_Vasthavani/Nuvvu_Vasthavani.txt
+    delete KavyaMadhavan/chandranudikkunnadikhil2/KavyaMadhavan.txt
+
+    correct frontal partial Madhavan/Cheli/Cheli.txt
+
+    
+
+
+Results in annotations for 31134 images in total
+
+
+
+
+
+
+
+
+
+

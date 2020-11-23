@@ -17,7 +17,7 @@ Some problems in the data handled by the code:
 
 #############################################################################################################
 
-Do the following before running split_data_copy.py. This will result in annotations for 31134 images in total,
+Do the following before running split_data_copy.py. This will result in annotations for 31124 images in total,
 split into train/val sets. Actors in train are not present in val. Around 75/25 split used for train/val.
 
 #############################################################################################################
@@ -32,6 +32,19 @@ split into train/val sets. Actors in train are not present in val. Around 75/25 
     delete KavyaMadhavan/chandranudikkunnadikhil2/KavyaMadhavan.txt
 
     correct frontal partial Madhavan/Cheli/Cheli.txt
+    delete first and last line Rimisen/Misc/Misc.txt
+    correct formatting RishiKapoor/YehVadhaRaha/YehVadhaRaha.txt _59.jpg
+    delete first line JayaBhaduri/Anamika/Anamika.txt
+    correct formatting BomanIrani/3Idiots/3Idiots.txt _11.jpg
+    add NONE for makeup, correct formatting in the last line KalisundamRaa/KalisundamRaa.txt
+    correct formatting BomanIrani/3Idiots/3Idiots.txt _11 _12 _13.jpg
+    correct formatting RishiKapoor/YehVadhaRaha/YehVadhaRaha.txt _58 _59.jpg
+
+
+
+
+
+
 
     
 

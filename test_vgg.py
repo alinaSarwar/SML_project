@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torchvision.transforms as transforms
-from dataset import FaceDataset, AttributesDataset, mean, std
-from model import MultiOutputModel
+from dataset_vgg import FaceDataset, AttributesDataset, mean, std
+from model_vgg import MultiOutputModel
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, balanced_accuracy_score
 from torch.utils.data import DataLoader
 
@@ -141,10 +141,20 @@ def visualize_grid(model, dataloader, attributes, device, show_cn_matrices=True,
             y_true=gt_age_all,
             y_pred=predicted_age_all,
             labels=attributes.age_labels,
-            normalize='true')
+            normalize='all')
+        print("Age confusion matrix")
+        print(attributes.age_labels)
+        print(confusion_matrix(
+            y_true=gt_age_all,
+            y_pred=predicted_age_all,
+            labels=attributes.age_labels))
+        print()
+        
         ConfusionMatrixDisplay(confusion_matrix=cn_matrix, display_labels=attributes.age_labels).plot(
-            include_values=False, xticks_rotation='vertical')
+            include_values=True, xticks_rotation='vertical',cmap='Blues')
         plt.title("age")
+        plt.set_cmap('gray')
+
         plt.tight_layout()
         plt.show()
 
@@ -153,10 +163,19 @@ def visualize_grid(model, dataloader, attributes, device, show_cn_matrices=True,
             y_true=gt_gender_all,
             y_pred=predicted_gender_all,
             labels=attributes.gender_labels,
-            normalize='true')
+            normalize='all')
+        print("Gender confusion matrix")
+        print(attributes.gender_labels)
+        print(confusion_matrix(
+            y_true=gt_gender_all,
+            y_pred=predicted_gender_all,
+            labels=attributes.gender_labels))
+        print()
         ConfusionMatrixDisplay(confusion_matrix=cn_matrix, display_labels=attributes.gender_labels).plot(
-            xticks_rotation='horizontal')
+            xticks_rotation='horizontal',cmap='Blues')
         plt.title("gender")
+        plt.set_cmap('gray')
+
         plt.tight_layout()
         plt.show()
 
@@ -165,25 +184,35 @@ def visualize_grid(model, dataloader, attributes, device, show_cn_matrices=True,
             y_true=gt_ethnicity_all,
             y_pred=predicted_ethnicity_all,
             labels=attributes.ethnicity_labels,
-            normalize='true')
-        plt.rcParams.update({'font.size': 1.3})
+            normalize='all')
+        print("Ethnicity confusion matrix")
+        print(attributes.ethnicity_labels)
+        print(confusion_matrix(
+            y_true=gt_ethnicity_all,
+            y_pred=predicted_ethnicity_all,
+            labels=attributes.ethnicity_labels))
+        print()
+
+        plt.rcParams.update({'font.size': 5})
         plt.rcParams.update({'figure.dpi': 300})
         ConfusionMatrixDisplay(confusion_matrix=cn_matrix, display_labels=attributes.ethnicity_labels).plot(
-            include_values=False, xticks_rotation='vertical')
+            include_values=True, xticks_rotation='vertical',cmap='Blues')
         plt.rcParams.update({'figure.dpi': 100})
-        plt.rcParams.update({'font.size': 3})
+        plt.rcParams.update({'font.size': 5})
         plt.title("ethnicity types")
+        plt.set_cmap('gray')
+
         plt.show()
 
     if show_images:
         labels = gt_labels if show_gt else labels
         title = "Ground truth labels" if show_gt else "Predicted labels"
         n_cols = 5
-        n_rows = 5
-        fig, axs = plt.subplots(n_rows, n_cols, figsize=(10, 10))
+        n_rows = 2
+        fig, axs = plt.subplots(n_rows, n_cols, figsize=(40, 40))#,gridspec_kw = {'height_ratios':[15,15]})
         axs = axs.flatten()
         for img, ax, label in zip(imgs, axs, labels):
-            ax.set_xlabel(label, rotation=0)
+            ax.set_xlabel(label, rotation=0, fontsize=15)
             ax.get_xaxis().set_ticks([])
             ax.get_yaxis().set_ticks([])
             ax.imshow(img)
@@ -215,8 +244,8 @@ def calculate_metrics(output, target):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Inference pipeline')
-    parser.add_argument('--checkpoint', type=str, required=True, help="Path to the checkpoint")
-    parser.add_argument('--attributes_file', type=str, default='./data/IMFDB_selected/newattributes.csv',
+    parser.add_argument('--checkpoint', type=str, default="checkpoints/expUTK_vgg/2020-12-03_14-22/checkpoint-000050.pth", help="Path to the checkpoint")
+    parser.add_argument('--attributes_file', type=str, default='./data/UTKFace/newattributes.csv',
                         help="Path to the file with attributes")
     parser.add_argument('--device', type=str, default='cuda',
                         help="Device: 'cuda' or 'cpu'")
@@ -235,7 +264,7 @@ if __name__ == '__main__':
 
     # test_dataset = FaceDataset('./data/IMFDB_selected/val.csv', attributes, val_transform)
     # test_dataloader = DataLoader(test_dataset, batch_size=64, shuffle=False, num_workers=8)
-    val_dataset = FaceDataset('data/IMFDB_selected/newval.csv', attributes, val_transform)
+    val_dataset = FaceDataset('data/UTKFace/newval.csv', attributes, val_transform)
     val_dataloader = DataLoader(val_dataset, batch_size=64, shuffle=True, num_workers=8)
 
     model = MultiOutputModel(n_age_classes=attributes.num_age, n_gender_classes=attributes.num_gender,

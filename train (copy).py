@@ -29,7 +29,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     start_epoch = 1
-    N_epochs = 100
+    N_epochs = 300
     batch_size = 128
     lr = 0.0001
     num_workers = 8  # number of processes to handle dataset loading
@@ -41,8 +41,8 @@ if __name__ == '__main__':
     # specify image transforms for augmentation during training
     train_transform = transforms.Compose([
         transforms.Resize((48,48)),
-        transforms.RandomHorizontalFlip(p=0.5),
-        # transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0),
+        # transforms.RandomHorizontalFlip(p=0.5),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0),
         # transforms.RandomAffine(degrees=10, translate=(0.1, 0.1), scale=(0.8, 1.2),
         #                         shear=None, resample=False, fillcolor=(255, 255, 255)),
         transforms.ToTensor(),
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     # during validation we use only tensor and normalization transforms
     val_transform = transforms.Compose([
         transforms.Resize((48, 48)),
-        # transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0),
         transforms.ToTensor(),
         transforms.Normalize(mean, std)
     ])
@@ -63,17 +63,17 @@ if __name__ == '__main__':
     val_dataset = FaceDataset('data/UTKFace/newval.csv', attributes, val_transform)
     val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
-    model = MultiOutputModel(n_age_classes=attributes.num_age,
-                             n_gender_classes=attributes.num_gender,
-                             n_ethnicity_classes=attributes.num_ethnicity)\
+    model = MultiOutputModel(n_pose_classes=attributes.num_poses,
+                             n_occlusion_classes=attributes.num_occlusion,
+                             n_expressions_classes=attributes.num_expressions)\
                             .to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     
     
 
-    logdir = os.path.join('./logs/expUTK_fullconv', get_cur_time())
-    savedir = os.path.join('./checkpoints/expUTK_vgg', get_cur_time())
+    logdir = os.path.join('./logs/exp40x80_noMeanSTD', get_cur_time())
+    savedir = os.path.join('./checkpoints/exp40x80_noMeanSTD', get_cur_time())
     os.makedirs(logdir, exist_ok=True)
     os.makedirs(savedir, exist_ok=True)
     logger = SummaryWriter(logdir)
@@ -82,9 +82,9 @@ if __name__ == '__main__':
 
     # Uncomment rows below to see example images with ground truth labels in val dataset and all the labels:
     visualize_grid(model, train_dataloader, attributes, device, show_cn_matrices=False, show_images=True, checkpoint=None, show_gt=True)
-    # print("\nAll gender labels:\n", attributes.eyes_labels)
-    # print("\nAll age labels:\n", attributes.age_labels)
-    # print("\nAll ethnicity labels:\n", attributes.ethnicity_labels)
+    # print("\nAll occlusion labels:\n", attributes.eyes_labels)
+    # print("\nAll pose labels:\n", attributes.pose_labels)
+    # print("\nAll expression labels:\n", attributes.expression_labels)
 
     print("Starting training ...")
 
@@ -93,9 +93,9 @@ if __name__ == '__main__':
             print("lr ->>>>> ", param_group['lr'])
 
         total_loss = 0
-        accuracy_age = 0
-        accuracy_gender = 0
-        accuracy_ethnicity = 0
+        accuracy_pose = 0
+        accuracy_occlusion = 0
+        accuracy_expression = 0
 
         for batch in train_dataloader:
             optimizer.zero_grad()
@@ -107,23 +107,23 @@ if __name__ == '__main__':
 
             loss_train, losses_train = model.get_loss(output, target_labels)
             total_loss += loss_train.item()
-            #age, gender, ethnicity
-            batch_accuracy_age, batch_accuracy_gender, batch_accuracy_ethnicity = \
+            #pose, occlusion, expression
+            batch_accuracy_pose, batch_accuracy_occlusion, batch_accuracy_expression = \
                 calculate_metrics(output, target_labels)
 
-            accuracy_age += batch_accuracy_age
-            accuracy_gender += batch_accuracy_gender
-            accuracy_ethnicity += batch_accuracy_ethnicity
+            accuracy_pose += batch_accuracy_pose
+            accuracy_occlusion += batch_accuracy_occlusion
+            accuracy_expression += batch_accuracy_expression
 
             loss_train.backward()
             optimizer.step()
 
-        print("epoch {:4d}, loss: {:.4f}, age: {:.4f}, gender: {:.4f}, ethnicity: {:.4f}".format(
+        print("epoch {:4d}, loss: {:.4f}, pose: {:.4f}, occlusion: {:.4f}, expressions: {:.4f}".format(
             epoch,
             total_loss / n_train_samples,
-            accuracy_age / n_train_samples,
-            accuracy_gender / n_train_samples,
-            accuracy_ethnicity / n_train_samples))
+            accuracy_pose / n_train_samples,
+            accuracy_occlusion / n_train_samples,
+            accuracy_expression / n_train_samples))
 
         logger.add_scalar('train_loss', total_loss / n_train_samples, epoch)
 

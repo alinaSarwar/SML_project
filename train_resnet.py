@@ -4,9 +4,9 @@ from datetime import datetime
 
 import torch
 import torchvision.transforms as transforms
-from dataset import FaceDataset, AttributesDataset, mean, std
-from model import MultiOutputModel
-from test import calculate_metrics, validate, visualize_grid
+from dataset_resnet import FaceDataset, AttributesDataset, mean, std
+from model_resnet import MultiOutputModel
+from test_resnet import calculate_metrics, validate, visualize_grid
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     train_transform = transforms.Compose([
         transforms.Resize((48,48)),
         transforms.RandomHorizontalFlip(p=0.5),
-        # transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0),
         # transforms.RandomAffine(degrees=10, translate=(0.1, 0.1), scale=(0.8, 1.2),
         #                         shear=None, resample=False, fillcolor=(255, 255, 255)),
         transforms.ToTensor(),
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     # during validation we use only tensor and normalization transforms
     val_transform = transforms.Compose([
         transforms.Resize((48, 48)),
-        # transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0),
         transforms.ToTensor(),
         transforms.Normalize(mean, std)
     ])
@@ -72,8 +72,8 @@ if __name__ == '__main__':
     
     
 
-    logdir = os.path.join('./logs/expUTK_fullconv', get_cur_time())
-    savedir = os.path.join('./checkpoints/expUTK_vgg', get_cur_time())
+    logdir = os.path.join('./logs/expUTK_resnet', get_cur_time())
+    savedir = os.path.join('./checkpoints/expUTK_resnet', get_cur_time())
     os.makedirs(logdir, exist_ok=True)
     os.makedirs(savedir, exist_ok=True)
     logger = SummaryWriter(logdir)

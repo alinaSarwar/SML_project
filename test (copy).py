@@ -29,9 +29,9 @@ def validate(model, dataloader, logger, iteration, device, checkpoint=None):
     model.eval()
     with torch.no_grad():
         avg_loss = 0
-        accuracy_age = 0
-        accuracy_gender = 0
-        accuracy_ethnicity = 0
+        accuracy_pose = 0
+        accuracy_occlusion = 0
+        accuracy_expression = 0
 
         for batch in dataloader:
             img = batch['img']
@@ -41,26 +41,26 @@ def validate(model, dataloader, logger, iteration, device, checkpoint=None):
 
             val_train, val_train_losses = model.get_loss(output, target_labels)
             avg_loss += val_train.item()
-            batch_accuracy_age, batch_accuracy_gender, batch_accuracy_ethnicity = \
+            batch_accuracy_pose, batch_accuracy_occlusion, batch_accuracy_expression = \
                 calculate_metrics(output, target_labels)
 
-            accuracy_age += batch_accuracy_age
-            accuracy_gender += batch_accuracy_gender
-            accuracy_ethnicity += batch_accuracy_ethnicity
+            accuracy_pose += batch_accuracy_pose
+            accuracy_occlusion += batch_accuracy_occlusion
+            accuracy_expression += batch_accuracy_expression
 
     n_samples = len(dataloader)
     avg_loss /= n_samples
-    accuracy_age /= n_samples
-    accuracy_gender /= n_samples
-    accuracy_ethnicity /= n_samples
+    accuracy_pose /= n_samples
+    accuracy_occlusion /= n_samples
+    accuracy_expression /= n_samples
     print('-' * 72)
-    print("Validation  loss: {:.4f}, age: {:.4f}, gender: {:.4f}, ethnicity: {:.4f}\n".format(
-        avg_loss, accuracy_age, accuracy_gender, accuracy_ethnicity))
+    print("Validation  loss: {:.4f}, pose: {:.4f}, occlusion: {:.4f}, expression: {:.4f}\n".format(
+        avg_loss, accuracy_pose, accuracy_occlusion, accuracy_expression))
 
     logger.add_scalar('val_loss', avg_loss, iteration)
-    logger.add_scalar('val_accuracy_age', accuracy_age, iteration)
-    logger.add_scalar('val_accuracy_gender', accuracy_gender, iteration)
-    logger.add_scalar('val_accuracy_ethnicity', accuracy_ethnicity, iteration)
+    logger.add_scalar('val_accuracy_pose', accuracy_pose, iteration)
+    logger.add_scalar('val_accuracy_occlusion', accuracy_occlusion, iteration)
+    logger.add_scalar('val_accuracy_expression', accuracy_expression, iteration)
 
     model.train()
 
@@ -74,113 +74,113 @@ def visualize_grid(model, dataloader, attributes, device, show_cn_matrices=True,
     imgs = []
     labels = []
     gt_labels = []
-    gt_age_all = []
-    gt_gender_all = []
-    gt_ethnicity_all = []
-    predicted_age_all = []
-    predicted_gender_all = []
-    predicted_ethnicity_all = []
+    gt_pose_all = []
+    gt_occlusion_all = []
+    gt_expression_all = []
+    predicted_pose_all = []
+    predicted_occlusion_all = []
+    predicted_expression_all = []
 
-    accuracy_age = 0
-    accuracy_gender = 0
-    accuracy_ethnicity = 0
+    accuracy_pose = 0
+    accuracy_occlusion = 0
+    accuracy_expression = 0
 
     with torch.no_grad():
         for batch in dataloader:
             img = batch['img']
-            gt_ages = batch['labels']['age_labels']
-            gt_genders = batch['labels']['gender_labels']
-            gt_ethnicitys = batch['labels']['ethnicity_labels']
+            gt_poses = batch['labels']['pose_labels']
+            gt_occlusions = batch['labels']['occlusion_labels']
+            gt_expressions = batch['labels']['expression_labels']
             output = model(img.to(device))
 
-            batch_accuracy_age, batch_accuracy_gender, batch_accuracy_ethnicity = \
+            batch_accuracy_pose, batch_accuracy_occlusion, batch_accuracy_expression = \
                 calculate_metrics(output, batch['labels'])
-            accuracy_age += batch_accuracy_age
-            accuracy_gender += batch_accuracy_gender
-            accuracy_ethnicity += batch_accuracy_ethnicity
+            accuracy_pose += batch_accuracy_pose
+            accuracy_occlusion += batch_accuracy_occlusion
+            accuracy_expression += batch_accuracy_expression
 
             # get the most confident prediction for each image
-            _, predicted_ages = output['age'].cpu().max(1)
-            _, predicted_genders = output['gender'].cpu().max(1)
-            _, predicted_ethnicitys = output['ethnicity'].cpu().max(1)
+            _, predicted_poses = output['pose'].cpu().max(1)
+            _, predicted_occlusions = output['occlusion'].cpu().max(1)
+            _, predicted_expressions = output['expressions'].cpu().max(1)
 
             for i in range(img.shape[0]):
                 image = np.clip(img[i].permute(1, 2, 0).numpy() * std + mean, 0, 1)
 
-                predicted_age = attributes.age_id_to_name[predicted_ages[i].item()]
-                predicted_gender = attributes.gender_id_to_name[predicted_genders[i].item()]
-                predicted_ethnicity = attributes.ethnicity_id_to_name[predicted_ethnicitys[i].item()]
+                predicted_pose = attributes.pose_id_to_name[predicted_poses[i].item()]
+                predicted_occlusion = attributes.occlusion_id_to_name[predicted_occlusions[i].item()]
+                predicted_expression = attributes.expression_id_to_name[predicted_expressions[i].item()]
 
-                gt_age = attributes.age_id_to_name[gt_ages[i].item()]
-                gt_gender = attributes.gender_id_to_name[gt_genders[i].item()]
-                gt_ethnicity = attributes.ethnicity_id_to_name[gt_ethnicitys[i].item()]
+                gt_pose = attributes.pose_id_to_name[gt_poses[i].item()]
+                gt_occlusion = attributes.occlusion_id_to_name[gt_occlusions[i].item()]
+                gt_expression = attributes.expression_id_to_name[gt_expressions[i].item()]
 
-                gt_age_all.append(gt_age)
-                gt_gender_all.append(gt_gender)
-                gt_ethnicity_all.append(gt_ethnicity)
+                gt_pose_all.append(gt_pose)
+                gt_occlusion_all.append(gt_occlusion)
+                gt_expression_all.append(gt_expression)
 
-                predicted_age_all.append(predicted_age)
-                predicted_gender_all.append(predicted_gender)
-                predicted_ethnicity_all.append(predicted_ethnicity)
+                predicted_pose_all.append(predicted_pose)
+                predicted_occlusion_all.append(predicted_occlusion)
+                predicted_expression_all.append(predicted_expression)
 
                 imgs.append(image)
-                labels.append("{} {} {}".format(predicted_gender, predicted_ethnicity, predicted_age))
-                gt_labels.append("{} {} {}".format(gt_gender, gt_ethnicity, gt_age))
+                labels.append("{}\n{}\n{}".format(predicted_occlusion, predicted_expression, predicted_pose))
+                gt_labels.append("{}\n{}\n{}".format(gt_occlusion, gt_expression, gt_pose))
 
     if not show_gt:
         n_samples = len(dataloader)
-        print("\nAccuracy:\nage: {:.4f}, gender: {:.4f}, ethnicity: {:.4f}".format(
-            accuracy_age / n_samples,
-            accuracy_gender / n_samples,
-            accuracy_ethnicity / n_samples))
+        print("\nAccuracy:\npose: {:.4f}, occlusion: {:.4f}, expressions: {:.4f}".format(
+            accuracy_pose / n_samples,
+            accuracy_occlusion / n_samples,
+            accuracy_expression / n_samples))
 
     # Draw confusion matrices
     if show_cn_matrices:
-        # age
+        # pose
         cn_matrix = confusion_matrix(
-            y_true=gt_age_all,
-            y_pred=predicted_age_all,
-            labels=attributes.age_labels,
+            y_true=gt_pose_all,
+            y_pred=predicted_pose_all,
+            labels=attributes.pose_labels,
             normalize='true')
-        ConfusionMatrixDisplay(confusion_matrix=cn_matrix, display_labels=attributes.age_labels).plot(
+        ConfusionMatrixDisplay(confusion_matrix=cn_matrix, display_labels=attributes.pose_labels).plot(
             include_values=False, xticks_rotation='vertical')
-        plt.title("age")
+        plt.title("poses")
         plt.tight_layout()
         plt.show()
 
-        # gender
+        # occlusion
         cn_matrix = confusion_matrix(
-            y_true=gt_gender_all,
-            y_pred=predicted_gender_all,
-            labels=attributes.gender_labels,
+            y_true=gt_occlusion_all,
+            y_pred=predicted_occlusion_all,
+            labels=attributes.occlusion_labels,
             normalize='true')
-        ConfusionMatrixDisplay(confusion_matrix=cn_matrix, display_labels=attributes.gender_labels).plot(
+        ConfusionMatrixDisplay(confusion_matrix=cn_matrix, display_labels=attributes.occlusion_labels).plot(
             xticks_rotation='horizontal')
-        plt.title("gender")
+        plt.title("occlusions")
         plt.tight_layout()
         plt.show()
 
-        # Uncomment code below to see the ethnicity confusion matrix (it may be too big to display)
+        # Uncomment code below to see the expression confusion matrix (it may be too big to display)
         cn_matrix = confusion_matrix(
-            y_true=gt_ethnicity_all,
-            y_pred=predicted_ethnicity_all,
-            labels=attributes.ethnicity_labels,
+            y_true=gt_expression_all,
+            y_pred=predicted_expression_all,
+            labels=attributes.expression_labels,
             normalize='true')
-        plt.rcParams.update({'font.size': 1.3})
+        plt.rcParams.update({'font.size': 1.8})
         plt.rcParams.update({'figure.dpi': 300})
-        ConfusionMatrixDisplay(confusion_matrix=cn_matrix, display_labels=attributes.ethnicity_labels).plot(
+        ConfusionMatrixDisplay(confusion_matrix=cn_matrix, display_labels=attributes.expression_labels).plot(
             include_values=False, xticks_rotation='vertical')
         plt.rcParams.update({'figure.dpi': 100})
-        plt.rcParams.update({'font.size': 3})
-        plt.title("ethnicity types")
+        plt.rcParams.update({'font.size': 5})
+        plt.title("expression types")
         plt.show()
 
     if show_images:
         labels = gt_labels if show_gt else labels
         title = "Ground truth labels" if show_gt else "Predicted labels"
         n_cols = 5
-        n_rows = 5
-        fig, axs = plt.subplots(n_rows, n_cols, figsize=(10, 10))
+        n_rows = 2
+        fig, axs = plt.subplots(n_rows, n_cols, figsize=(48, 48))
         axs = axs.flatten()
         for img, ax, label in zip(imgs, axs, labels):
             ax.set_xlabel(label, rotation=0)
@@ -195,22 +195,22 @@ def visualize_grid(model, dataloader, attributes, device, show_cn_matrices=True,
 
 
 def calculate_metrics(output, target):
-    _, predicted_age = output['age'].cpu().max(1)
-    gt_age = target['age_labels'].cpu()
+    _, predicted_pose = output['pose'].cpu().max(1)
+    gt_pose = target['pose_labels'].cpu()
 
-    _, predicted_gender = output['gender'].cpu().max(1)
-    gt_gender = target['gender_labels'].cpu()
+    _, predicted_occlusion = output['occlusion'].cpu().max(1)
+    gt_occlusion = target['occlusion_labels'].cpu()
 
-    _, predicted_ethnicity = output['ethnicity'].cpu().max(1)
-    gt_ethnicity = target['ethnicity_labels'].cpu()
+    _, predicted_expression = output['expressions'].cpu().max(1)
+    gt_expression = target['expression_labels'].cpu()
 
     with warnings.catch_warnings():  # sklearn may produce a warning when processing zero row in confusion matrix
         warnings.simplefilter("ignore")
-        accuracy_age = balanced_accuracy_score(y_true=gt_age.numpy(), y_pred=predicted_age.numpy())
-        accuracy_gender = balanced_accuracy_score(y_true=gt_gender.numpy(), y_pred=predicted_gender.numpy())
-        accuracy_ethnicity = balanced_accuracy_score(y_true=gt_ethnicity.numpy(), y_pred=predicted_ethnicity.numpy())
+        accuracy_pose = balanced_accuracy_score(y_true=gt_pose.numpy(), y_pred=predicted_pose.numpy())
+        accuracy_occlusion = balanced_accuracy_score(y_true=gt_occlusion.numpy(), y_pred=predicted_occlusion.numpy())
+        accuracy_expression = balanced_accuracy_score(y_true=gt_expression.numpy(), y_pred=predicted_expression.numpy())
 
-    return accuracy_age, accuracy_gender, accuracy_ethnicity
+    return accuracy_pose, accuracy_occlusion, accuracy_expression
 
 
 if __name__ == '__main__':
@@ -238,8 +238,8 @@ if __name__ == '__main__':
     val_dataset = FaceDataset('data/IMFDB_selected/newval.csv', attributes, val_transform)
     val_dataloader = DataLoader(val_dataset, batch_size=64, shuffle=True, num_workers=8)
 
-    model = MultiOutputModel(n_age_classes=attributes.num_age, n_gender_classes=attributes.num_gender,
-                             n_ethnicity_classes=attributes.num_ethnicity).to(device)
+    model = MultiOutputModel(n_pose_classes=attributes.num_poses, n_occlusion_classes=attributes.num_occlusion,
+                             n_expressions_classes=attributes.num_expressions).to(device)
 
     # Visualization of the trained model
     visualize_grid(model, val_dataloader, attributes, device, checkpoint=args.checkpoint, show_cn_matrices=True)

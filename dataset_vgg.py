@@ -5,10 +5,8 @@ from PIL import Image
 from torch.utils.data import Dataset
 import cv2
 
-# mean = [0.485, 0.456, 0.406]
-# std = [0.229, 0.224, 0.225]
-mean = [0.449]
-std = [0.226]
+mean = [0.485, 0.456, 0.406]
+std = [0.229, 0.224, 0.225]
 
 class AttributesDataset():
     def __init__(self, annotation_path):
@@ -73,10 +71,9 @@ class FaceDataset(Dataset):
         # read image
         #img = Image.open(img_path)
         # print(img_path)
-        # img = cv2.imread(img_path, cv2.IMREAD_COLOR)
-        img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+        img = cv2.imread(img_path, cv2.IMREAD_COLOR)
 
-        # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         
         # img = np.expand_dims(img, axis=0).astype('uint8')
         # img = img.transage((2,0,1))

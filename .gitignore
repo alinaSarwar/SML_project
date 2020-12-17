@@ -1,4 +1,4 @@
-data/
+data/UTKFace/images/
 logs/
 checkpoints/
 .svn/
@@ -8,5 +8,4 @@ __pycache__/
 *.tar.xz
 .jpg
 outputs/
-inputs/
 input/

@@ -291,7 +291,7 @@ if __name__ == '__main__':
 
     # during validation we use only tensor and normalization transforms
     val_transform = transforms.Compose([
-        transforms.Resize((48, 48)),
+        transforms.Resize((80, 80)),
         transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0),
         transforms.ToTensor(),
         transforms.Normalize(mean, std)
@@ -306,4 +306,4 @@ if __name__ == '__main__':
                              n_ethnicity_classes=attributes.num_ethnicity).to(device)
 
     # Visualization of the trained model
-    visualize_grid(model, val_dataloader, attributes, device, checkpoint=args.checkpoint, show_cn_matrices=True)
+    visualize_grid(model, val_dataloader, attributes, device, checkpoint=args.checkpoint, show_cn_matrices=False, show_images=True)

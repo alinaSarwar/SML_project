@@ -4,7 +4,6 @@ import numpy as np
 import torch.nn.functional as F
 from torch.nn.modules.activation import ReLU
 import torchvision.models as models
-import facial_expressions_trained.model as fe_model
 import torch
 
 def one_hot_encoded_target(target, num_classes):

@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torchvision.transforms as transforms
-from dataset import FaceDataset, AttributesDataset, mean, std
-from model import MultiOutputModel
+from dataset_resnet import FaceDataset, AttributesDataset, mean, std
+from model_vgg import MultiOutputModel
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, balanced_accuracy_score
 from torch.utils.data import DataLoader
 
@@ -65,7 +65,7 @@ def validate(model, dataloader, logger, iteration, device, checkpoint=None):
     model.train()
 
 
-def visualize_grid(model, dataloader, attributes, device, show_cn_matrices=True, show_images=True, checkpoint=None,
+def visualize_grid(model, dataloader, attributes, device, show_cn_matrices=True, show_images=False, checkpoint=None,
                    show_gt=False):
     if checkpoint is not None:
         checkpoint_load(model, checkpoint)
@@ -129,66 +129,129 @@ def visualize_grid(model, dataloader, attributes, device, show_cn_matrices=True,
 
     if not show_gt:
         n_samples = len(dataloader)
-        print("\nAccuracy:\nage: {:.4f}, gender: {:.4f}, ethnicity: {:.4f}".format(
-            accuracy_age / n_samples,
-            accuracy_gender / n_samples,
-            accuracy_ethnicity / n_samples))
+        # print("\nAccuracy:\nage: {:.4f}, gender: {:.4f}, ethnicity: {:.4f}".format(
+        #     accuracy_age / n_samples,
+        #     accuracy_gender / n_samples,
+        #     accuracy_ethnicity / n_samples))
 
     # Draw confusion matrices
-    if show_cn_matrices:
         # age
-        cn_matrix = confusion_matrix(
-            y_true=gt_age_all,
-            y_pred=predicted_age_all,
-            labels=attributes.age_labels,
-            normalize='true')
+    cn_matrix = confusion_matrix(
+        y_true=gt_age_all,
+        y_pred=predicted_age_all,
+        labels=attributes.age_labels,
+        normalize='all')
+    cm_age = confusion_matrix(
+        y_true=gt_age_all,
+        y_pred=predicted_age_all,
+        labels=attributes.age_labels)
+    if show_cn_matrices:
+        print(attributes.age_labels)
+        print("\nAge confusion matrix")
+        print(cm_age)
+        
+    true_pos = np.diag(cm_age)
+    false_pos = np.sum(cm_age, axis=0) - true_pos
+    false_neg = np.sum(cm_age, axis=1) - true_pos
+
+    precision = true_pos / (true_pos + false_pos)
+    recall = true_pos / (true_pos + false_neg)
+    print("Age: Precision = ", precision, " recall : ", recall, "Accuracy = ", np.sum(true_pos)/np.sum(cm_age))
+    
+    
+    if show_images: 
         ConfusionMatrixDisplay(confusion_matrix=cn_matrix, display_labels=attributes.age_labels).plot(
-            include_values=False, xticks_rotation='vertical')
+            include_values=True, xticks_rotation='vertical',cmap='Blues')
         plt.title("age")
+        plt.set_cmap('gray')
+
         plt.tight_layout()
         plt.show()
 
         # gender
-        cn_matrix = confusion_matrix(
-            y_true=gt_gender_all,
-            y_pred=predicted_gender_all,
-            labels=attributes.gender_labels,
-            normalize='true')
+    cn_matrix = confusion_matrix(
+        y_true=gt_gender_all,
+        y_pred=predicted_gender_all,
+        labels=attributes.gender_labels,
+        normalize='all')
+ 
+    cm_gen = confusion_matrix(
+        y_true=gt_gender_all,
+        y_pred=predicted_gender_all,
+        labels=attributes.gender_labels)
+    if show_cn_matrices:
+        print("\nGender confusion matrix")
+        print(attributes.gender_labels)
+        print(cm_gen)
+    true_pos = np.diag(cm_gen)
+    false_pos = np.sum(cm_gen, axis=0) - true_pos
+    false_neg = np.sum(cm_gen, axis=1) - true_pos
+
+    precision = true_pos / (true_pos + false_pos)
+    recall = true_pos / (true_pos + false_neg)
+    print("Gender: Precision = ", precision, " recall : ", recall, "Accurcy = ", np.sum(true_pos)/np.sum(cm_gen))
+    
+    print()
+    if show_images:
         ConfusionMatrixDisplay(confusion_matrix=cn_matrix, display_labels=attributes.gender_labels).plot(
-            xticks_rotation='horizontal')
+            xticks_rotation='horizontal',cmap='Blues')
         plt.title("gender")
+        plt.set_cmap('gray')
+
         plt.tight_layout()
         plt.show()
 
         # Uncomment code below to see the ethnicity confusion matrix (it may be too big to display)
-        cn_matrix = confusion_matrix(
-            y_true=gt_ethnicity_all,
-            y_pred=predicted_ethnicity_all,
-            labels=attributes.ethnicity_labels,
-            normalize='true')
-        plt.rcParams.update({'font.size': 1.3})
+    cn_matrix = confusion_matrix(
+        y_true=gt_ethnicity_all,
+        y_pred=predicted_ethnicity_all,
+        labels=attributes.ethnicity_labels,
+        normalize='all')
+    
+    cm_eth = confusion_matrix(
+        y_true=gt_ethnicity_all,
+        y_pred=predicted_ethnicity_all,
+        labels=attributes.ethnicity_labels)
+    if show_cn_matrices: 
+        print("\nEthnicity confusion matrix")
+        print(attributes.ethnicity_labels)
+        print(cm_eth)
+    true_pos = np.diag(cm_eth)
+    false_pos = np.sum(cm_eth, axis=0) - true_pos
+    false_neg = np.sum(cm_eth, axis=1) - true_pos
+
+    precision = true_pos / (true_pos + false_pos)
+    recall = true_pos / (true_pos + false_neg)
+    print("Ethnicity: Precision = ", precision, " recall : ", recall, "Accurcy = ", np.sum(true_pos)/np.sum(cm_eth))
+    
+    
+    if show_images:
+        plt.rcParams.update({'font.size': 5})
         plt.rcParams.update({'figure.dpi': 300})
         ConfusionMatrixDisplay(confusion_matrix=cn_matrix, display_labels=attributes.ethnicity_labels).plot(
-            include_values=False, xticks_rotation='vertical')
+            include_values=True, xticks_rotation='vertical',cmap='Blues')
         plt.rcParams.update({'figure.dpi': 100})
-        plt.rcParams.update({'font.size': 3})
+        plt.rcParams.update({'font.size': 5})
         plt.title("ethnicity types")
+        plt.set_cmap('gray')
+
         plt.show()
 
+        # Uncomment code below to see the ethnicity confusion matrix (it may be too big to display)
     if show_images:
         labels = gt_labels if show_gt else labels
         title = "Ground truth labels" if show_gt else "Predicted labels"
         n_cols = 5
-        n_rows = 5
-        fig, axs = plt.subplots(n_rows, n_cols, figsize=(10, 10))
+        n_rows = 2
+        fig, axs = plt.subplots(n_rows, n_cols, figsize=(40, 40))#,gridspec_kw = {'height_ratios':[15,15]})
         axs = axs.flatten()
         for img, ax, label in zip(imgs, axs, labels):
-            ax.set_xlabel(label, rotation=0)
+            ax.set_xlabel(label, rotation=0, fontsize=15)
             ax.get_xaxis().set_ticks([])
             ax.get_yaxis().set_ticks([])
             ax.imshow(img)
         plt.suptitle(title)
-        plt.tight_layout()
+        # plt.tight_layout()
         plt.show()
 
     model.train()
@@ -216,7 +279,7 @@ def calculate_metrics(output, target):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Inference pipeline')
     parser.add_argument('--checkpoint', type=str, required=True, help="Path to the checkpoint")
-    parser.add_argument('--attributes_file', type=str, default='./data/IMFDB_selected/newattributes.csv',
+    parser.add_argument('--attributes_file', type=str, default='./data/UTKFace/newattributes.csv',
                         help="Path to the file with attributes")
     parser.add_argument('--device', type=str, default='cuda',
                         help="Device: 'cuda' or 'cpu'")
@@ -228,14 +291,15 @@ if __name__ == '__main__':
 
     # during validation we use only tensor and normalization transforms
     val_transform = transforms.Compose([
-        transforms.Resize((40,50)),
+        transforms.Resize((48, 48)),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0),
         transforms.ToTensor(),
         transforms.Normalize(mean, std)
     ])
 
     # test_dataset = FaceDataset('./data/IMFDB_selected/val.csv', attributes, val_transform)
     # test_dataloader = DataLoader(test_dataset, batch_size=64, shuffle=False, num_workers=8)
-    val_dataset = FaceDataset('data/IMFDB_selected/newval.csv', attributes, val_transform)
+    val_dataset = FaceDataset('data/UTKFace/newval.csv', attributes, val_transform)
     val_dataloader = DataLoader(val_dataset, batch_size=64, shuffle=True, num_workers=8)
 
     model = MultiOutputModel(n_age_classes=attributes.num_age, n_gender_classes=attributes.num_gender,
